@@ -57,6 +57,7 @@
   var nextRoundBtn = document.getElementById('next-round-btn');
   var gameOverArea = document.getElementById('game-over-area');
   var endGameBtn = document.getElementById('end-game-btn');
+  var endGamePlayingBtn = document.getElementById('end-game-playing-btn');
 
   // ===== Init =====
   var params = new URLSearchParams(window.location.search);
@@ -565,10 +566,14 @@
     }
   });
 
-  // End game
-  endGameBtn.addEventListener('click', function () {
-    window.db.ref('games/' + roomCode + '/meta/status').set('ended');
-  });
+  // End game (from finished or playing)
+  function endGame() {
+    if (confirm('Are you sure you want to end the game?')) {
+      window.db.ref('games/' + roomCode + '/meta/status').set('ended');
+    }
+  }
+  endGameBtn.addEventListener('click', endGame);
+  endGamePlayingBtn.addEventListener('click', endGame);
 
   // ===== Celebration =====
   function showCelebration() {
