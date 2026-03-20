@@ -30,6 +30,7 @@
   var calledSongs = [];    // called song numbers
   var meta = {};           // game meta
   var songMap = {};        // number -> song object
+  var songOrder = [];      // cached song play order
   var lastSongIndex = -1;
   var lastClaimedBingo = false;
   var celebrationShown = false;
@@ -92,32 +93,28 @@
       return;
     }
 
-    // songOrder may not be loaded yet
-    gameRef.child('songOrder').once('value', function (snap) {
-      var songOrder = snap.val() || [];
-      var songNum = songOrder[idx];
-      var song = songMap[songNum];
-      if (song) {
-        nowPlayingNumber.textContent = song.number;
-        nowPlayingTitle.textContent = song.title;
-        nowPlayingArtist.textContent = song.artist;
-      } else {
-        nowPlayingNumber.textContent = songNum || '-';
-        nowPlayingTitle.textContent = 'Song #' + (songNum || '?');
-        nowPlayingArtist.textContent = '';
-      }
+    var songNum = songOrder[idx];
+    var song = songMap[songNum];
+    if (song) {
+      nowPlayingNumber.textContent = song.number;
+      nowPlayingTitle.textContent = song.title;
+      nowPlayingArtist.textContent = song.artist;
+    } else {
+      nowPlayingNumber.textContent = songNum || '-';
+      nowPlayingTitle.textContent = 'Song #' + (songNum || '?');
+      nowPlayingArtist.textContent = '';
+    }
 
-      // Pulse animation on new song
-      if (idx !== lastSongIndex) {
-        lastSongIndex = idx;
-        nowPlayingSection.style.transition = 'none';
-        nowPlayingSection.style.boxShadow = '0 0 20px 4px var(--accent)';
-        setTimeout(function () {
-          nowPlayingSection.style.transition = 'box-shadow 1s ease-out';
-          nowPlayingSection.style.boxShadow = 'none';
-        }, 50);
-      }
-    });
+    // Pulse animation on new song
+    if (idx !== lastSongIndex) {
+      lastSongIndex = idx;
+      nowPlayingSection.style.transition = 'none';
+      nowPlayingSection.style.boxShadow = '0 0 20px 4px var(--accent)';
+      setTimeout(function () {
+        nowPlayingSection.style.transition = 'box-shadow 1s ease-out';
+        nowPlayingSection.style.boxShadow = 'none';
+      }, 50);
+    }
   }
 
   // ---- Build song map ----
@@ -327,22 +324,27 @@
       songs = songSnap.val() || window.DEFAULT_SONGS;
       buildSongMap();
 
-      // Load meta
-      metaRef.once('value', function (metaSnap) {
-        meta = metaSnap.val() || {};
-        updateRoundDisplay();
-        updateNowPlaying();
+      // Load song order
+      gameRef.child('songOrder').once('value', function (orderSnap) {
+        songOrder = orderSnap.val() || [];
 
-        // Load called songs
-        calledSongsRef.once('value', function (calledSnap) {
-          calledSongs = calledSnap.val() || [];
-          if (!Array.isArray(calledSongs)) calledSongs = [];
+        // Load meta
+        metaRef.once('value', function (metaSnap) {
+          meta = metaSnap.val() || {};
+          updateRoundDisplay();
+          updateNowPlaying();
 
-          renderBoard();
-          renderSongList();
+          // Load called songs
+          calledSongsRef.once('value', function (calledSnap) {
+            calledSongs = calledSnap.val() || [];
+            if (!Array.isArray(calledSongs)) calledSongs = [];
 
-          // Now set up real-time listeners
-          setupListeners();
+            renderBoard();
+            renderSongList();
+
+            // Now set up real-time listeners
+            setupListeners();
+          });
         });
       });
     });
@@ -372,6 +374,16 @@
       // Detect status change to "finished"
       if (newMeta.status === 'finished' && oldStatus !== 'finished') {
         showCelebration(newMeta.winnerName || 'Someone', newMeta.winnerId || '');
+      }
+
+      // Detect game ended
+      if (newMeta.status === 'ended') {
+        celebrationTitle.textContent = 'Game Over';
+        celebrationWinner.textContent = 'Thanks for playing!';
+        celebrationSubtitle.textContent = '';
+        celebrationOverlay.classList.add('active');
+        celebrationDismiss.textContent = 'Back to Home';
+        celebrationDismiss.onclick = function () { window.location.href = 'index.html'; };
       }
 
       // Detect round increase while playing

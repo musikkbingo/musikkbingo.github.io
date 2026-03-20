@@ -191,6 +191,29 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+  <!-- Confetti -->
+  <script>
+    window.launchConfetti = function () {
+      var container = document.getElementById('confetti-container');
+      if (!container) return;
+      container.innerHTML = '';
+      var colors = ['#e94560', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#1abc9c'];
+      for (var i = 0; i < 80; i++) {
+        var p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDelay = (Math.random() * 2) + 's';
+        p.style.animationDuration = (2 + Math.random() * 2) + 's';
+        p.style.width = (6 + Math.random() * 8) + 'px';
+        p.style.height = (6 + Math.random() * 8) + 'px';
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        container.appendChild(p);
+      }
+      setTimeout(function () { container.innerHTML = ''; }, 5000);
+    };
+  </script>
+
   <!-- App scripts -->
   <script src="js/firebase-config.js"></script>
   <script src="js/songs.js"></script>

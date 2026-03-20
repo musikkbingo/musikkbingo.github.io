@@ -142,7 +142,8 @@
     // Called songs listener
     var calledRef = gameRef.child('calledSongs');
     calledRef.on('value', function (snap) {
-      calledSongs = snap.val() || [];
+      var val = snap.val();
+      calledSongs = Array.isArray(val) ? val : [];
       renderCalledSongs();
     });
     listeners.push({ ref: calledRef, event: 'value' });
@@ -499,26 +500,29 @@
 
   // ===== BINGO Handler =====
   function handleBingoClaim(playerId, playerData) {
-    // Verify the claim
-    var board = playerData.board || [];
-    var marks = playerData.marks || [];
-    var currentRound = meta.currentRound || 1;
+    // Fresh read of calledSongs to avoid race condition
+    window.db.ref('games/' + roomCode + '/calledSongs').once('value', function (snap) {
+      var freshCalled = snap.val();
+      freshCalled = Array.isArray(freshCalled) ? freshCalled : [];
 
-    var isValid = window.checkBingo(board, marks, calledSongs, currentRound);
+      var board = playerData.board || [];
+      var marks = playerData.marks || [];
+      var currentRound = meta.currentRound || 1;
 
-    if (isValid) {
-      // Winner! Update meta
-      var updates = {
-        'meta/winnerName': playerData.name,
-        'meta/winnerId': playerId,
-        'meta/status': 'finished'
-      };
-      window.db.ref('games/' + roomCode).update(updates);
-      showCelebration();
-    } else {
-      // False claim - silently reset
-      window.db.ref('games/' + roomCode + '/players/' + playerId + '/claimedBingo').set(false);
-    }
+      var isValid = window.checkBingo(board, marks, freshCalled, currentRound);
+
+      if (isValid) {
+        var updates = {
+          'meta/winnerName': playerData.name,
+          'meta/winnerId': playerId,
+          'meta/status': 'finished'
+        };
+        window.db.ref('games/' + roomCode).update(updates);
+        showCelebration();
+      } else {
+        window.db.ref('games/' + roomCode + '/players/' + playerId + '/claimedBingo').set(false);
+      }
+    });
   }
 
   // ===== Finished View =====
@@ -568,27 +572,9 @@
 
   // ===== Celebration =====
   function showCelebration() {
-    var container = document.getElementById('confetti-container');
-    container.innerHTML = '';
-    var colors = ['#e94560', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#1abc9c'];
-
-    for (var i = 0; i < 60; i++) {
-      var piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.style.left = Math.random() * 100 + '%';
-      piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      piece.style.animationDelay = (Math.random() * 2) + 's';
-      piece.style.animationDuration = (2 + Math.random() * 2) + 's';
-      piece.style.width = (6 + Math.random() * 8) + 'px';
-      piece.style.height = (6 + Math.random() * 8) + 'px';
-      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-      container.appendChild(piece);
+    if (typeof window.launchConfetti === 'function') {
+      window.launchConfetti();
     }
-
-    // Clear after animation
-    setTimeout(function () {
-      container.innerHTML = '';
-    }, 5000);
   }
 
 })();

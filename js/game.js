@@ -94,6 +94,9 @@ async function joinGame(roomCode, playerName) {
   }
 
   var meta = metaSnap.val();
+  if (meta.status !== 'lobby') {
+    throw new Error('Game has already started. You cannot join mid-game.');
+  }
   var boardSeed = meta.boardSeed;
 
   // Generate unique player ID
