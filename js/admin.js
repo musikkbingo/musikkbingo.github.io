@@ -392,7 +392,7 @@
   if (spotifyConnectBtn) spotifyConnectBtn.addEventListener('click', connectSpotify);
   if (spotifyLobbyConnect) spotifyLobbyConnect.addEventListener('click', connectSpotify);
 
-  // ===== Admin Spotify embed (same as players) =====
+  // ===== Admin Spotify embed (admin only - players hear from speakers) =====
   var adminEmbedEl = document.getElementById('admin-spotify-embed');
 
   function playAdminEmbed(trackId) {

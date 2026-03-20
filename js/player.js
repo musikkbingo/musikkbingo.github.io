@@ -77,18 +77,8 @@
     roundRequirement.textContent = reqTexts[round] || '';
   }
 
-  // ---- Spotify embed player ----
+  // ---- Song tracking (no audio on player - music plays from venue speakers) ----
   var lastPlayedSongIndex = -1;
-  var spotifyEmbedEl = document.getElementById('spotify-embed');
-
-  function playSpotifyEmbed(trackId) {
-    if (!spotifyEmbedEl || !trackId) return;
-    spotifyEmbedEl.innerHTML = '<iframe src="https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>';
-  }
-
-  function stopSpotifyEmbed() {
-    if (spotifyEmbedEl) spotifyEmbedEl.innerHTML = '';
-  }
 
   // ---- Build song map ----
   function buildSongMap() {
@@ -330,24 +320,9 @@
       meta = newMeta;
       updateRoundDisplay();
 
-      // Play Spotify embed when DJ advances to a new song
-      var newSongIndex = newMeta.currentSongIndex;
-      if (newSongIndex !== undefined && newSongIndex !== null && newSongIndex !== -1 && newSongIndex !== lastPlayedSongIndex) {
-        lastPlayedSongIndex = newSongIndex;
-        gameRef.child('songOrder').once('value', function (orderSnap) {
-          var order = orderSnap.val() || [];
-          var songNum = order[newSongIndex];
-          var song = songMap[songNum];
-          if (song && song.spotifyUri) {
-            var trackId = song.spotifyUri.replace('spotify:track:', '');
-            playSpotifyEmbed(trackId);
-          }
-        });
-      }
-
-      // Stop on game finish
-      if (newMeta.status === 'finished' || newMeta.status === 'ended' || !newMeta.status) {
-        stopSpotifyEmbed();
+      // Track song index changes (music plays from venue speakers)
+      if (newMeta.currentSongIndex !== undefined && newMeta.currentSongIndex !== lastPlayedSongIndex) {
+        lastPlayedSongIndex = newMeta.currentSongIndex;
       }
 
       // Detect status change to "finished"
