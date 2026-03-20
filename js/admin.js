@@ -443,7 +443,8 @@
     } else {
       playingPlayerList.innerHTML = '';
       for (var j = 0; j < keys.length; j++) {
-        var pl = players[keys[j]];
+        var pid = keys[j];
+        var pl = players[pid];
         var li2 = document.createElement('li');
         var nameSpan2 = document.createElement('span');
         nameSpan2.className = 'player-name';
@@ -452,9 +453,13 @@
         if (pl.claimedBingo) {
           statusSpan2.className = 'player-status bingo-claimed';
           statusSpan2.textContent = 'BINGO claimed!';
+        } else if (cooldownActive && playerHasClickedSinceSnapshot(pid)) {
+          statusSpan2.className = 'player-status';
+          statusSpan2.style.color = 'var(--success)';
+          statusSpan2.textContent = '✓ Clicked';
         } else {
           statusSpan2.className = 'player-status';
-          statusSpan2.textContent = 'Playing';
+          statusSpan2.textContent = cooldownActive ? '⏳ Waiting' : 'Playing';
         }
         li2.appendChild(nameSpan2);
         li2.appendChild(statusSpan2);
@@ -517,6 +522,27 @@
   var lastPlayerClickTime = 0;
   var playerHasClicked = false;
   var cooldownActive = false;
+  var marksSnapshot = {}; // playerId -> mark count when song was called
+
+  function takeMarksSnapshot() {
+    marksSnapshot = {};
+    var keys = Object.keys(players);
+    for (var i = 0; i < keys.length; i++) {
+      var marks = players[keys[i]].marks || [];
+      var count = 0;
+      for (var m = 0; m < marks.length; m++) { if (marks[m]) count++; }
+      marksSnapshot[keys[i]] = count;
+    }
+  }
+
+  function playerHasClickedSinceSnapshot(playerId) {
+    var pl = players[playerId];
+    if (!pl || !pl.marks) return false;
+    var currentCount = 0;
+    for (var m = 0; m < pl.marks.length; m++) { if (pl.marks[m]) currentCount++; }
+    var prevCount = marksSnapshot[playerId] || 0;
+    return currentCount !== prevCount;
+  }
 
   function startNextSongCooldown() {
     cooldownActive = true;
@@ -578,6 +604,9 @@
     updates['calledSongs'] = newCalledSongs;
 
     window.db.ref('games/' + roomCode).update(updates);
+
+    // Snapshot marks before players react
+    takeMarksSnapshot();
 
     // Play Spotify embed on admin too
     var song = findSongByNumber(songNum);
