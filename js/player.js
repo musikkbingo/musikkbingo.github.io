@@ -323,7 +323,6 @@
 
       meta = newMeta;
       updateRoundDisplay();
-      updateNowPlaying();
 
       // Detect status change to "finished"
       if (newMeta.status === 'finished' && oldStatus !== 'finished') {
