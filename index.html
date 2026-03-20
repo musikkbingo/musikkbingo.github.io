@@ -53,8 +53,8 @@
               type="text"
               id="join-code"
               class="form-input"
-              placeholder="XXXX"
-              maxlength="4"
+              placeholder="BINGO-XXXX"
+              maxlength="10"
               required
               style="text-transform: uppercase; letter-spacing: 0.15em; font-weight: 600;"
             >
@@ -95,9 +95,9 @@
       var joinError = document.getElementById('join-error');
       var joinCodeInput = document.getElementById('join-code');
 
-      // Auto-uppercase room code as user types
+      // Auto-uppercase room code and allow BINGO- prefix
       joinCodeInput.addEventListener('input', function () {
-        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
       });
 
       // Create Game
@@ -132,11 +132,11 @@
         e.preventDefault();
         joinError.textContent = '';
 
-        var roomCode = joinCodeInput.value.trim().toUpperCase();
+        var roomCode = joinCodeInput.value.trim().toUpperCase().replace('BINGO-', '');
         var playerName = document.getElementById('join-name').value.trim();
 
         if (roomCode.length !== 4) {
-          joinError.textContent = 'Room code must be 4 characters.';
+          joinError.textContent = 'Enter the 4-character code (e.g. W3JF from BINGO-W3JF).';
           return;
         }
 
