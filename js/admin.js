@@ -389,18 +389,78 @@
     });
   });
 
-  // Start game - check all songs have Spotify URIs
-  startGameBtn.addEventListener('click', function () {
+  // Start game - auto-fetch missing previews, then start
+  startGameBtn.addEventListener('click', async function () {
+    var token = window.spotifyAPI ? window.spotifyAPI.getToken() : null;
+
+    // Check for missing previews
     var missing = [];
     for (var i = 0; i < songs.length; i++) {
-      if (!songs[i].previewUrl) {
-        missing.push('#' + songs[i].number + ' ' + songs[i].title + ' - ' + songs[i].artist);
-      }
+      if (!songs[i].previewUrl) missing.push(i);
     }
+
+    // If previews missing, try to auto-fetch them
     if (missing.length > 0) {
-      alert('Cannot start! These songs are missing Spotify preview clips:\n\n' + missing.join('\n') + '\n\nConnect Spotify and click "Save Changes" to link them.');
-      return;
+      if (!token) {
+        alert('Connect Spotify first! ' + missing.length + ' songs need preview clips.');
+        return;
+      }
+
+      startGameBtn.disabled = true;
+      startGameBtn.textContent = 'Linking songs... (0/' + missing.length + ')';
+
+      var failed = [];
+      for (var m = 0; m < missing.length; m++) {
+        var idx = missing[m];
+        var song = songs[idx];
+        startGameBtn.textContent = 'Linking songs... (' + (m + 1) + '/' + missing.length + ')';
+
+        try {
+          var track = null;
+
+          if (song.spotifyUri) {
+            var trackId = song.spotifyUri.replace('spotify:track:', '');
+            var tResp = await fetch('https://api.spotify.com/v1/tracks/' + trackId, {
+              headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (tResp.ok) track = await tResp.json();
+          }
+
+          if (!track) {
+            var query = encodeURIComponent(song.title + ' ' + song.artist);
+            var resp = await fetch('https://api.spotify.com/v1/search?q=' + query + '&type=track&limit=1', {
+              headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var data = await resp.json();
+            if (data.tracks && data.tracks.items && data.tracks.items.length > 0) {
+              track = data.tracks.items[0];
+            }
+          }
+
+          if (track && track.preview_url) {
+            songs[idx].spotifyUri = track.uri;
+            songs[idx].previewUrl = track.preview_url;
+          } else {
+            failed.push(song.number + '. ' + song.title);
+          }
+        } catch (err) {
+          failed.push(song.number + '. ' + song.title);
+        }
+      }
+
+      if (failed.length > 0) {
+        alert(failed.length + ' songs have no preview clip on Spotify:\n' + failed.slice(0, 5).join('\n') + (failed.length > 5 ? '\n...and ' + (failed.length - 5) + ' more' : '') + '\n\nEdit these songs or swap them.');
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = 'Start Game';
+        return;
+      }
+
+      // Save updated songs to Firebase
+      await window.db.ref('games/' + roomCode + '/songs').set(songs);
     }
+
+    startGameBtn.disabled = false;
+    startGameBtn.textContent = 'Start Game';
     window.db.ref('games/' + roomCode + '/meta/status').set('playing');
   });
 
