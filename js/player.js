@@ -30,8 +30,6 @@
   var calledSongs = [];    // called song numbers
   var meta = {};           // game meta
   var songMap = {};        // number -> song object
-  var songOrder = [];      // cached song play order
-  var lastSongIndex = -1;
   var lastClaimedBingo = false;
   var celebrationShown = false;
 
@@ -40,10 +38,6 @@
   var playerNameDisplay = document.getElementById('player-name-display');
   var roundInfo = document.getElementById('round-info');
   var roundRequirement = document.getElementById('round-requirement');
-  var nowPlayingNumber = document.getElementById('now-playing-number');
-  var nowPlayingTitle = document.getElementById('now-playing-title');
-  var nowPlayingArtist = document.getElementById('now-playing-artist');
-  var nowPlayingSection = document.getElementById('now-playing');
   var boardEl = document.getElementById('bingo-board');
   var bingoBtn = document.getElementById('bingo-btn');
   var toastMsg = document.getElementById('toast-msg');
@@ -81,40 +75,6 @@
       3: 'Full board to win!'
     };
     roundRequirement.textContent = reqTexts[round] || '';
-  }
-
-  // ---- Now Playing display ----
-  function updateNowPlaying() {
-    var idx = meta.currentSongIndex;
-    if (idx === undefined || idx === null || idx === -1) {
-      nowPlayingNumber.textContent = '-';
-      nowPlayingTitle.textContent = 'Waiting for DJ to start...';
-      nowPlayingArtist.textContent = '';
-      return;
-    }
-
-    var songNum = songOrder[idx];
-    var song = songMap[songNum];
-    if (song) {
-      nowPlayingNumber.textContent = song.number;
-      nowPlayingTitle.textContent = song.title;
-      nowPlayingArtist.textContent = song.artist;
-    } else {
-      nowPlayingNumber.textContent = songNum || '-';
-      nowPlayingTitle.textContent = 'Song #' + (songNum || '?');
-      nowPlayingArtist.textContent = '';
-    }
-
-    // Pulse animation on new song
-    if (idx !== lastSongIndex) {
-      lastSongIndex = idx;
-      nowPlayingSection.style.transition = 'none';
-      nowPlayingSection.style.boxShadow = '0 0 20px 4px var(--accent)';
-      setTimeout(function () {
-        nowPlayingSection.style.transition = 'box-shadow 1s ease-out';
-        nowPlayingSection.style.boxShadow = 'none';
-      }, 50);
-    }
   }
 
   // ---- Build song map ----
@@ -324,27 +284,21 @@
       songs = songSnap.val() || window.DEFAULT_SONGS;
       buildSongMap();
 
-      // Load song order
-      gameRef.child('songOrder').once('value', function (orderSnap) {
-        songOrder = orderSnap.val() || [];
+      // Load meta
+      metaRef.once('value', function (metaSnap) {
+        meta = metaSnap.val() || {};
+        updateRoundDisplay();
 
-        // Load meta
-        metaRef.once('value', function (metaSnap) {
-          meta = metaSnap.val() || {};
-          updateRoundDisplay();
-          updateNowPlaying();
+        // Load called songs
+        calledSongsRef.once('value', function (calledSnap) {
+          calledSongs = calledSnap.val() || [];
+          if (!Array.isArray(calledSongs)) calledSongs = [];
 
-          // Load called songs
-          calledSongsRef.once('value', function (calledSnap) {
-            calledSongs = calledSnap.val() || [];
-            if (!Array.isArray(calledSongs)) calledSongs = [];
+          renderBoard();
+          renderSongList();
 
-            renderBoard();
-            renderSongList();
-
-            // Now set up real-time listeners
-            setupListeners();
-          });
+          // Now set up real-time listeners
+          setupListeners();
         });
       });
     });
