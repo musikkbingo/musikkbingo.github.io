@@ -263,24 +263,10 @@
       var inputCategory = createEditableInput(i, 'category', song.category);
       tdCategory.appendChild(inputCategory);
 
-      var tdSpotify = document.createElement('td');
-      tdSpotify.style.padding = '0.4rem 0.5rem';
-      var searchBtn = document.createElement('button');
-      searchBtn.className = 'btn btn-secondary btn-sm';
-      searchBtn.textContent = song.spotifyUri ? '✓' : '🔍';
-      searchBtn.title = song.spotifyUri || 'Search Spotify';
-      searchBtn.style.fontSize = '0.75rem';
-      searchBtn.style.padding = '0.2em 0.5em';
-      searchBtn.addEventListener('click', (function (idx) {
-        return function () { searchSpotifyForSong(idx); };
-      })(i));
-      tdSpotify.appendChild(searchBtn);
-
       tr.appendChild(tdNum);
       tr.appendChild(tdTitle);
       tr.appendChild(tdArtist);
       tr.appendChild(tdCategory);
-      tr.appendChild(tdSpotify);
       songTableBody.appendChild(tr);
     }
   }
@@ -302,14 +288,64 @@
       var idx = parseInt(this.dataset.index, 10);
       var f = this.dataset.field;
       songs[idx][f] = this.value;
+      // Clear Spotify URI when title or artist changes so it gets re-searched
+      if (f === 'title' || f === 'artist') {
+        songs[idx].spotifyUri = null;
+      }
     });
     return input;
   }
 
-  // Save songs
-  saveSongsBtn.addEventListener('click', function () {
+  // Save songs - auto-search Spotify for any missing URIs
+  saveSongsBtn.addEventListener('click', async function () {
+    var token = window.spotifyAPI ? window.spotifyAPI.getToken() : null;
+
+    // Find songs missing Spotify URIs
+    var missing = [];
+    for (var i = 0; i < songs.length; i++) {
+      if (!songs[i].spotifyUri) missing.push(i);
+    }
+
+    if (missing.length > 0 && token) {
+      saveSongsBtn.disabled = true;
+      saveSongsBtn.textContent = 'Searching Spotify... (0/' + missing.length + ')';
+
+      var notFound = [];
+      for (var m = 0; m < missing.length; m++) {
+        var idx = missing[m];
+        var song = songs[idx];
+        saveSongsBtn.textContent = 'Searching Spotify... (' + (m + 1) + '/' + missing.length + ')';
+        try {
+          var query = encodeURIComponent(song.title + ' ' + song.artist);
+          var resp = await fetch('https://api.spotify.com/v1/search?q=' + query + '&type=track&limit=1', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          var data = await resp.json();
+          if (data.tracks && data.tracks.items && data.tracks.items.length > 0) {
+            songs[idx].spotifyUri = data.tracks.items[0].uri;
+          } else {
+            notFound.push(song.title + ' - ' + song.artist);
+          }
+        } catch (err) {
+          notFound.push(song.title + ' - ' + song.artist);
+        }
+      }
+
+      if (notFound.length > 0) {
+        alert('Could not find Spotify tracks for:\n\n' + notFound.join('\n') + '\n\nFix the song titles/artists and save again.');
+        saveSongsBtn.disabled = false;
+        saveSongsBtn.textContent = 'Save Changes';
+        return;
+      }
+    } else if (missing.length > 0 && !token) {
+      alert('Connect to Spotify first so songs can be linked to Spotify tracks.');
+      return;
+    }
+
+    // All songs have URIs - save to Firebase
     window.db.ref('games/' + roomCode + '/songs').set(songs).then(function () {
       saveSongsBtn.textContent = 'Saved!';
+      saveSongsBtn.disabled = false;
       setTimeout(function () { saveSongsBtn.textContent = 'Save Changes'; }, 2000);
     });
   });
@@ -333,8 +369,18 @@
     });
   });
 
-  // Start game
+  // Start game - check all songs have Spotify URIs
   startGameBtn.addEventListener('click', function () {
+    var missing = [];
+    for (var i = 0; i < songs.length; i++) {
+      if (!songs[i].spotifyUri) {
+        missing.push('#' + songs[i].number + ' ' + songs[i].title + ' - ' + songs[i].artist);
+      }
+    }
+    if (missing.length > 0) {
+      alert('Cannot start! These songs are missing Spotify links:\n\n' + missing.join('\n') + '\n\nConnect Spotify and click "Save Changes" to auto-link them.');
+      return;
+    }
     window.db.ref('games/' + roomCode + '/meta/status').set('playing');
   });
 
@@ -674,37 +720,6 @@
 
     window.db.ref('games/' + roomCode).update(updates);
   });
-
-  // ===== Spotify Song Search =====
-  async function searchSpotifyForSong(songIndex) {
-    var token = window.spotifyAPI ? window.spotifyAPI.getToken() : null;
-    if (!token) {
-      alert('Connect to Spotify first to search for songs.');
-      return;
-    }
-
-    var song = songs[songIndex];
-    var query = encodeURIComponent(song.title + ' ' + song.artist);
-
-    try {
-      var response = await fetch('https://api.spotify.com/v1/search?q=' + query + '&type=track&limit=1', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      var data = await response.json();
-
-      if (data.tracks && data.tracks.items && data.tracks.items.length > 0) {
-        var track = data.tracks.items[0];
-        songs[songIndex].spotifyUri = track.uri;
-        renderSongTable();
-        alert('Found: ' + track.name + ' by ' + track.artists[0].name);
-      } else {
-        alert('No Spotify track found for "' + song.title + ' - ' + song.artist + '"');
-      }
-    } catch (err) {
-      console.error('Spotify search failed:', err);
-      alert('Search failed. Make sure Spotify is connected.');
-    }
-  }
 
   // ===== Celebration =====
   function showCelebration() {
