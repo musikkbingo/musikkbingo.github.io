@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Music Bingo</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Auth Section -->
+  <div id="auth-section" class="landing">
+    <h1 class="landing-title">Music Bingo</h1>
+    <p class="landing-subtitle">Admin Login</p>
+    <div class="landing-forms">
+      <div class="card">
+        <h2>Enter Admin PIN</h2>
+        <form id="pin-form" autocomplete="off">
+          <div class="form-group">
+            <label for="admin-pin">PIN</label>
+            <input
+              type="password"
+              id="admin-pin"
+              class="form-input"
+              placeholder="Enter admin PIN"
+              inputmode="numeric"
+              required
+            >
+          </div>
+          <div class="error-msg" id="auth-error"></div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Panel (hidden until auth) -->
+  <div id="admin-panel" class="hidden">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="nav-bar container-wide">
+        <div class="nav-bar room-info">
+          <h1>Music Bingo Admin</h1>
+          <span id="header-room-code" class="room-code-small"></span>
+          <span id="header-status" class="status-badge lobby">Lobby</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-wide">
+
+      <!-- ===== LOBBY SECTION ===== -->
+      <div id="lobby-section">
+        <!-- Room Code Display -->
+        <div class="card text-center">
+          <p class="text-muted mb-1">Share this code with players:</p>
+          <div class="room-code" id="lobby-room-code"></div>
+          <button class="btn btn-outline btn-sm mt-1" id="copy-code-btn">Copy Code</button>
+        </div>
+
+        <!-- Players -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <h3>Players</h3>
+            <span class="player-count" id="player-count">0 players</span>
+          </div>
+          <ul class="player-list" id="player-list">
+            <li class="text-muted">Waiting for players to join...</li>
+          </ul>
+        </div>
+
+        <!-- Round Selector -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Rounds</h3>
+          </div>
+          <div class="form-group">
+            <label for="round-select">Total Rounds</label>
+            <select id="round-select" class="form-input">
+              <option value="1">1 Round</option>
+              <option value="2">2 Rounds</option>
+              <option value="3">3 Rounds</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Song Editor -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <h3>Song List</h3>
+            <div>
+              <button class="btn btn-secondary btn-sm" id="shuffle-order-btn">Shuffle Order</button>
+              <button class="btn btn-success btn-sm" id="save-songs-btn">Save Changes</button>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="song-table" id="song-table" style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left; padding:0.5rem; color:var(--text-secondary); border-bottom:1px solid var(--border);">#</th>
+                  <th style="text-align:left; padding:0.5rem; color:var(--text-secondary); border-bottom:1px solid var(--border);">Title</th>
+                  <th style="text-align:left; padding:0.5rem; color:var(--text-secondary); border-bottom:1px solid var(--border);">Artist</th>
+                  <th style="text-align:left; padding:0.5rem; color:var(--text-secondary); border-bottom:1px solid var(--border);">Category</th>
+                </tr>
+              </thead>
+              <tbody id="song-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Start Button -->
+        <div class="text-center mt-2 mb-3">
+          <button class="btn btn-success btn-lg" id="start-game-btn">Start Game</button>
+        </div>
+      </div>
+
+      <!-- ===== PLAYING SECTION ===== -->
+      <div id="playing-section" class="hidden">
+        <!-- Round Info -->
+        <div class="card text-center">
+          <span class="round-indicator" id="round-indicator">Round 1</span>
+          <p class="song-progress mt-1" id="song-progress">Song 0 of 32</p>
+          <p class="text-muted" id="round-requirement">Round 1: One line</p>
+        </div>
+
+        <!-- Current Song -->
+        <div class="now-playing" id="now-playing">
+          <div class="now-playing-label">Now Playing</div>
+          <div class="now-playing-number" id="current-song-number">-</div>
+          <div class="now-playing-song" id="current-song-title">Ready to start</div>
+          <div class="now-playing-artist" id="current-song-artist">Press "Next Song" to begin</div>
+        </div>
+
+        <!-- Next Song Button -->
+        <div class="text-center mb-2">
+          <button class="btn btn-primary btn-lg" id="next-song-btn">Next Song</button>
+        </div>
+
+        <!-- Called Songs -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Called Songs</h3>
+          </div>
+          <ul class="called-songs-list" id="called-songs-list" style="max-height:300px; overflow-y:auto; list-style:none; padding:0;">
+            <li class="text-muted">No songs called yet</li>
+          </ul>
+        </div>
+
+        <!-- Players (compact) -->
+        <div class="card">
+          <div class="card-header flex-between">
+            <h3>Players</h3>
+            <span class="player-count" id="playing-player-count">0 players</span>
+          </div>
+          <ul class="player-list" id="playing-player-list"></ul>
+        </div>
+      </div>
+
+      <!-- ===== FINISHED SECTION ===== -->
+      <div id="finished-section" class="hidden">
+        <div class="card text-center">
+          <h2 style="color: var(--warning); font-size: 2rem;">BINGO!</h2>
+          <p style="font-size: 1.4rem; font-weight: 700; color: #fff;" id="winner-display"></p>
+          <p class="text-muted" id="finished-round-info"></p>
+        </div>
+
+        <div class="text-center mt-2" id="next-round-area">
+          <button class="btn btn-success btn-lg" id="next-round-btn">Next Round</button>
+        </div>
+
+        <div class="text-center mt-2 hidden" id="game-over-area">
+          <div class="card text-center">
+            <h3 style="color: var(--warning);">Game Over!</h3>
+            <p class="text-muted">All rounds have been completed.</p>
+          </div>
+        </div>
+
+        <div class="text-center mt-2">
+          <button class="btn btn-danger" id="end-game-btn">End Game</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Celebration overlay -->
+  <div class="confetti-container" id="confetti-container"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- App scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/songs.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/bingo-check.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
