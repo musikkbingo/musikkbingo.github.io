@@ -58,6 +58,7 @@
   var gameOverArea = document.getElementById('game-over-area');
   var endGameBtn = document.getElementById('end-game-btn');
   var endGamePlayingBtn = document.getElementById('end-game-playing-btn');
+  var deleteGameBtn = document.getElementById('delete-game-btn');
 
   // ===== Init =====
   var params = new URLSearchParams(window.location.search);
@@ -574,6 +575,15 @@
   }
   endGameBtn.addEventListener('click', endGame);
   endGamePlayingBtn.addEventListener('click', endGame);
+
+  // Delete game - removes all data from Firebase
+  deleteGameBtn.addEventListener('click', function () {
+    if (confirm('Delete this game permanently? This will remove all data and kick all players.')) {
+      window.db.ref('games/' + roomCode).remove().then(function () {
+        window.location.href = 'index.html';
+      });
+    }
+  });
 
   // ===== Celebration =====
   function showCelebration() {
