@@ -94,17 +94,9 @@
       cell.dataset.index = i;
 
       var songNum = board[i];
-      var isCalled = calledSongs.indexOf(songNum) !== -1;
       var isMarked = marks[i] === true;
 
       if (isMarked) {
-        cell.classList.add('marked');
-      }
-      if (isCalled && !isMarked) {
-        cell.classList.add('called');
-      }
-      if (isCalled && isMarked) {
-        cell.classList.add('called');
         cell.classList.add('marked');
       }
 
