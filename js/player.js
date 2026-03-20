@@ -77,26 +77,17 @@
     roundRequirement.textContent = reqTexts[round] || '';
   }
 
-  // ---- Audio preview player ----
-  var previewAudio = null;
+  // ---- Spotify embed player ----
   var lastPlayedSongIndex = -1;
+  var spotifyEmbedEl = document.getElementById('spotify-embed');
 
-  function playPreview(previewUrl) {
-    if (previewAudio) {
-      previewAudio.pause();
-      previewAudio = null;
-    }
-    if (!previewUrl) return;
-    previewAudio = new Audio(previewUrl);
-    previewAudio.volume = 0.8;
-    previewAudio.play().catch(function () {
-      // Autoplay blocked - show a tap-to-play prompt
-      showToast('Tap anywhere to enable audio', 'var(--accent-secondary)', 5000);
-      document.addEventListener('click', function playOnTap() {
-        if (previewAudio) previewAudio.play().catch(function () {});
-        document.removeEventListener('click', playOnTap);
-      }, { once: true });
-    });
+  function playSpotifyEmbed(trackId) {
+    if (!spotifyEmbedEl || !trackId) return;
+    spotifyEmbedEl.innerHTML = '<iframe src="https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>';
+  }
+
+  function stopSpotifyEmbed() {
+    if (spotifyEmbedEl) spotifyEmbedEl.innerHTML = '';
   }
 
   // ---- Build song map ----
@@ -339,24 +330,24 @@
       meta = newMeta;
       updateRoundDisplay();
 
-      // Play song preview when DJ advances to a new song
+      // Play Spotify embed when DJ advances to a new song
       var newSongIndex = newMeta.currentSongIndex;
       if (newSongIndex !== undefined && newSongIndex !== null && newSongIndex !== -1 && newSongIndex !== lastPlayedSongIndex) {
         lastPlayedSongIndex = newSongIndex;
-        // Look up the song via songOrder from Firebase
         gameRef.child('songOrder').once('value', function (orderSnap) {
           var order = orderSnap.val() || [];
           var songNum = order[newSongIndex];
           var song = songMap[songNum];
-          if (song && song.previewUrl) {
-            playPreview(song.previewUrl);
+          if (song && song.spotifyUri) {
+            var trackId = song.spotifyUri.replace('spotify:track:', '');
+            playSpotifyEmbed(trackId);
           }
         });
       }
 
-      // Stop audio on game finish
+      // Stop on game finish
       if (newMeta.status === 'finished' || newMeta.status === 'ended' || !newMeta.status) {
-        if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+        stopSpotifyEmbed();
       }
 
       // Detect status change to "finished"
