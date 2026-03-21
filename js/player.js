@@ -427,17 +427,27 @@
         celebrationDismiss.onclick = function () { window.location.href = 'index.html'; };
       }
 
-      // Detect round increase while playing — dismiss celebration, reset state
+      // Detect round increase while playing — dismiss celebration, reload state
       if (newMeta.status === 'playing' && newMeta.currentRound > (oldRound || 1)) {
         celebrationOverlay.classList.remove('active');
         celebrationShown = false;
         celebrationDismiss.disabled = false;
         celebrationDismiss.textContent = 'Continue';
-        bingoBtn.disabled = false;
+        bingoBtn.disabled = true;
         bingoBtn.textContent = 'BINGO';
         bingoBtn.classList.remove('bingo-ready');
-        updateBingoButton();
         showToast('🎯 Round ' + newMeta.currentRound + ' starting!', 'var(--accent-secondary)', 3000);
+        // Re-read marks and calledSongs from Firebase to ensure fresh state
+        playerRef.child('marks').once('value', function (msnap) {
+          marks = msnap.val() || marks;
+          if (!Array.isArray(marks)) { marks = []; for (var i = 0; i < 16; i++) marks.push(false); }
+          renderBoard();
+          calledSongsRef.once('value', function (csnap) {
+            calledSongs = csnap.val() || [];
+            if (!Array.isArray(calledSongs)) calledSongs = [];
+            updateBingoButton();
+          });
+        });
       }
 
       // Detect new game started (admin restarted in same room)
