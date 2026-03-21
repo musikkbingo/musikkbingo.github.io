@@ -474,9 +474,9 @@ select.form-input {
   position: absolute;
   width: 72%;
   height: 72%;
-  background: radial-gradient(circle at 35% 35%, #ff5252 0%, #ff1744 40%, #cc1144 70%, rgba(150, 5, 30, 0.8) 100%);
+  background: radial-gradient(circle at 35% 35%, rgba(255, 82, 82, 0.55) 0%, rgba(255, 23, 68, 0.5) 40%, rgba(204, 17, 68, 0.45) 70%, rgba(150, 5, 30, 0.35) 100%);
   border-radius: 50%;
-  box-shadow: 0 3px 12px rgba(255, 23, 68, 0.7), inset 0 -3px 6px rgba(0, 0, 0, 0.4), inset 0 3px 6px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 3px 12px rgba(255, 23, 68, 0.5), inset 0 -3px 6px rgba(0, 0, 0, 0.2), inset 0 3px 6px rgba(255, 255, 255, 0.15);
   animation: dabber-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
