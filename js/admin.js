@@ -76,6 +76,20 @@
     return;
   }
 
+  // ===== Auto-login if session has PIN hash (from create game or admin login) =====
+  (async function () {
+    var storedHash = sessionStorage.getItem('admin_pin_hash');
+    var storedRoom = sessionStorage.getItem('admin_room');
+    if (storedHash && storedRoom === roomCode) {
+      // Verify the stored hash matches
+      var metaSnap = await window.db.ref('games/' + roomCode + '/meta').once('value');
+      if (metaSnap.exists() && metaSnap.val().adminPinHash === storedHash) {
+        showAdminPanel();
+        return;
+      }
+    }
+  })();
+
   // ===== Auth Flow =====
   pinForm.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -358,15 +372,44 @@
         startGameBtn.textContent = 'Linking songs... (' + (m + 1) + '/' + missing.length + ')';
 
         try {
-          var query = encodeURIComponent(song.title + ' ' + song.artist);
-          var resp = await fetch('https://api.spotify.com/v1/search?q=' + query + '&type=track&limit=1', {
+          // Use Spotify's field filters for accurate matching
+          var query = encodeURIComponent('track:"' + song.title + '" artist:"' + song.artist + '"');
+          var resp = await fetch('https://api.spotify.com/v1/search?q=' + query + '&type=track&limit=5', {
             headers: { 'Authorization': 'Bearer ' + token }
           });
           var data = await resp.json();
-          if (data.tracks && data.tracks.items && data.tracks.items.length > 0) {
-            songs[idx].spotifyUri = data.tracks.items[0].uri;
+
+          // Find best match - prefer exact title match
+          var bestTrack = null;
+          if (data.tracks && data.tracks.items) {
+            var titleLower = song.title.toLowerCase();
+            for (var t = 0; t < data.tracks.items.length; t++) {
+              var candidate = data.tracks.items[t];
+              if (candidate.name.toLowerCase() === titleLower) {
+                bestTrack = candidate;
+                break;
+              }
+            }
+            // Fallback to first result if no exact match
+            if (!bestTrack && data.tracks.items.length > 0) {
+              bestTrack = data.tracks.items[0];
+            }
+          }
+
+          if (bestTrack) {
+            songs[idx].spotifyUri = bestTrack.uri;
           } else {
-            failed.push(song.number + '. ' + song.title);
+            // Retry with simpler query as fallback
+            var fallbackQuery = encodeURIComponent(song.title + ' ' + song.artist);
+            var fbResp = await fetch('https://api.spotify.com/v1/search?q=' + fallbackQuery + '&type=track&limit=1', {
+              headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var fbData = await fbResp.json();
+            if (fbData.tracks && fbData.tracks.items && fbData.tracks.items.length > 0) {
+              songs[idx].spotifyUri = fbData.tracks.items[0].uri;
+            } else {
+              failed.push(song.number + '. ' + song.title);
+            }
           }
         } catch (err) {
           failed.push(song.number + '. ' + song.title);

@@ -12,38 +12,7 @@
     <p class="landing-subtitle">Hear a song? Dab your board! Get BINGO to win!</p>
 
     <div class="landing-forms">
-      <!-- Create Game -->
-      <div class="card">
-        <h2>Create Game</h2>
-        <form id="create-form" autocomplete="off">
-          <div class="form-group">
-            <label for="create-pin">Admin PIN (4+ digits)</label>
-            <input
-              type="password"
-              id="create-pin"
-              class="form-input"
-              placeholder="Enter a PIN"
-              minlength="4"
-              inputmode="numeric"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label for="create-rounds">Number of Rounds</label>
-            <select id="create-rounds" class="form-input">
-              <option value="1">1 Round</option>
-              <option value="2">2 Rounds</option>
-              <option value="3" selected>3 Rounds</option>
-            </select>
-          </div>
-          <div class="error-msg" id="create-error"></div>
-          <button type="submit" class="btn btn-primary btn-block btn-lg">Create Game</button>
-        </form>
-      </div>
-
-      <div class="divider-text">or</div>
-
-      <!-- Join Game -->
+      <!-- Join Game (primary - for players) -->
       <div class="card">
         <h2>Join Game</h2>
         <form id="join-form" autocomplete="off">
@@ -74,6 +43,69 @@
           <button type="submit" class="btn btn-success btn-block btn-lg">Join Game</button>
         </form>
       </div>
+
+      <div class="divider-text">DJ / Admin</div>
+
+      <!-- Create New Game -->
+      <div class="card">
+        <h2>Create New Game</h2>
+        <form id="create-form" autocomplete="off">
+          <div class="form-group">
+            <label for="create-pin">Admin PIN (4+ digits)</label>
+            <input
+              type="password"
+              id="create-pin"
+              class="form-input"
+              placeholder="Choose a PIN"
+              minlength="4"
+              inputmode="numeric"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="create-rounds">Number of Rounds</label>
+            <select id="create-rounds" class="form-input">
+              <option value="1">1 Round</option>
+              <option value="2">2 Rounds</option>
+              <option value="3" selected>3 Rounds</option>
+            </select>
+          </div>
+          <div class="error-msg" id="create-error"></div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Create Game</button>
+        </form>
+      </div>
+
+      <!-- Admin Login to existing game -->
+      <div class="card">
+        <h2>Rejoin as Admin</h2>
+        <form id="admin-login-form" autocomplete="off">
+          <div class="form-group">
+            <label for="admin-code">Room Code</label>
+            <input
+              type="text"
+              id="admin-code"
+              class="form-input"
+              placeholder="BINGO-XXXX"
+              maxlength="10"
+              required
+              style="text-transform: uppercase; letter-spacing: 0.15em; font-weight: 600;"
+            >
+          </div>
+          <div class="form-group">
+            <label for="admin-pin">Admin PIN</label>
+            <input
+              type="password"
+              id="admin-pin"
+              class="form-input"
+              placeholder="Enter PIN"
+              inputmode="numeric"
+              required
+            >
+          </div>
+          <div class="error-msg" id="admin-error"></div>
+          <button type="submit" class="btn btn-secondary btn-block">Rejoin Game</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -94,37 +126,16 @@
       var joinForm = document.getElementById('join-form');
       var joinError = document.getElementById('join-error');
       var joinCodeInput = document.getElementById('join-code');
+      var adminLoginForm = document.getElementById('admin-login-form');
+      var adminError = document.getElementById('admin-error');
+      var adminCodeInput = document.getElementById('admin-code');
 
-      // Auto-uppercase room code and allow BINGO- prefix
+      // Auto-uppercase room code inputs
       joinCodeInput.addEventListener('input', function () {
         this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
       });
-
-      // Create Game
-      createForm.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        createError.textContent = '';
-
-        var pin = document.getElementById('create-pin').value.trim();
-        var totalRounds = parseInt(document.getElementById('create-rounds').value, 10);
-
-        if (pin.length < 4) {
-          createError.textContent = 'PIN must be at least 4 characters.';
-          return;
-        }
-
-        var btn = createForm.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        btn.textContent = 'Creating...';
-
-        try {
-          var roomCode = await window.createGame(pin, totalRounds);
-          window.location.href = 'admin.html?room=' + roomCode;
-        } catch (err) {
-          createError.textContent = err.message || 'Failed to create game. Please try again.';
-          btn.disabled = false;
-          btn.textContent = 'Create Game';
-        }
+      adminCodeInput.addEventListener('input', function () {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
       });
 
       // Join Game
@@ -156,6 +167,78 @@
           joinError.textContent = err.message || 'Failed to join game. Please try again.';
           btn.disabled = false;
           btn.textContent = 'Join Game';
+        }
+      });
+
+      // Create Game - auto-login to admin after creation
+      createForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        createError.textContent = '';
+
+        var pin = document.getElementById('create-pin').value.trim();
+        var totalRounds = parseInt(document.getElementById('create-rounds').value, 10);
+
+        if (pin.length < 4) {
+          createError.textContent = 'PIN must be at least 4 characters.';
+          return;
+        }
+
+        var btn = createForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+
+        try {
+          var roomCode = await window.createGame(pin, totalRounds);
+          // Store PIN hash so admin.html can skip login
+          var pinHash = await window.hashPin(pin);
+          sessionStorage.setItem('admin_pin_hash', pinHash);
+          sessionStorage.setItem('admin_room', roomCode);
+          window.location.href = 'admin.html?room=' + roomCode;
+        } catch (err) {
+          createError.textContent = err.message || 'Failed to create game. Please try again.';
+          btn.disabled = false;
+          btn.textContent = 'Create Game';
+        }
+      });
+
+      // Admin Login to existing game
+      adminLoginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        adminError.textContent = '';
+
+        var roomCode = adminCodeInput.value.trim().toUpperCase().replace('BINGO-', '');
+        var pin = document.getElementById('admin-pin').value.trim();
+
+        if (roomCode.length !== 4) {
+          adminError.textContent = 'Enter the 4-character room code.';
+          return;
+        }
+
+        if (!pin) {
+          adminError.textContent = 'Enter the admin PIN.';
+          return;
+        }
+
+        var btn = adminLoginForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+
+        try {
+          var valid = await window.verifyAdmin(roomCode, pin);
+          if (valid) {
+            var pinHash = await window.hashPin(pin);
+            sessionStorage.setItem('admin_pin_hash', pinHash);
+            sessionStorage.setItem('admin_room', roomCode);
+            window.location.href = 'admin.html?room=' + roomCode;
+          } else {
+            adminError.textContent = 'Invalid room code or PIN.';
+            btn.disabled = false;
+            btn.textContent = 'Rejoin Game';
+          }
+        } catch (err) {
+          adminError.textContent = err.message || 'Failed to verify. Please try again.';
+          btn.disabled = false;
+          btn.textContent = 'Rejoin Game';
         }
       });
     })();
