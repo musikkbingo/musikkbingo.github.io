@@ -159,6 +159,8 @@
     var orderRef = gameRef.child('songOrder');
     orderRef.on('value', function (snap) {
       songOrder = snap.val() || [];
+      // Re-render playing view if we're in playing state (fixes refresh)
+      if (meta && meta.status === 'playing') updatePlayingView();
     });
     listeners.push({ ref: orderRef, event: 'value' });
 
@@ -168,6 +170,8 @@
       var val = snap.val();
       calledSongs = Array.isArray(val) ? val : [];
       renderCalledSongs();
+      // Re-render playing view if we're in playing state (fixes refresh)
+      if (meta && meta.status === 'playing') updatePlayingView();
     });
     listeners.push({ ref: calledRef, event: 'value' });
 
