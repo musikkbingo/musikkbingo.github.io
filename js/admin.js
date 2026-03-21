@@ -600,7 +600,7 @@
     songProgress.textContent = 'Song ' + calledCount + ' of 32';
 
     // Current song display
-    if (currentIndex === -1 || !songOrder || songOrder.length === 0) {
+    if (currentIndex === -1 || !songOrder || songOrder.length === 0 || waitingForNextSong) {
       currentSongNumber.textContent = '-';
       currentSongTitle.textContent = 'Ready to start';
       currentSongArtist.textContent = 'Press "Next Song" to begin';
@@ -634,6 +634,7 @@
 
   // Song timer - count up from 0 when a new song is called
   var songTimer = null;
+  var waitingForNextSong = false; // true after round transition until Next Song pressed
   var songSeconds = 0;
   var songTimerEl = document.getElementById('song-timer');
 
@@ -670,6 +671,7 @@
 
   nextSongBtn.addEventListener('click', function () {
     if (!meta) return;
+    waitingForNextSong = false;
     var currentIndex = meta.currentSongIndex != null ? meta.currentSongIndex : -1;
     var newIndex = currentIndex + 1;
 
@@ -842,6 +844,7 @@
 
     // Reset admin state for new round
     clickedPlayers = {};
+    waitingForNextSong = true;
     stopSongTimer();
     if (adminEmbedEl) { adminEmbedEl.innerHTML = ''; adminEmbedEl.dataset.currentTrack = ''; }
   });
