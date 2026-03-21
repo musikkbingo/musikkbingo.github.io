@@ -486,6 +486,28 @@ select.form-input {
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* ===== Fixed Toast ===== */
+.toast-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  text-align: center;
+  pointer-events: none;
+  padding: 0.5rem;
+}
+
+.toast-fixed span {
+  display: inline-block;
+  padding: 0.5em 1.2em;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
 /* ===== BINGO Button ===== */
 .bingo-btn {
   display: block;

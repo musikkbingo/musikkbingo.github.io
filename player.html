@@ -18,10 +18,16 @@
       <div class="player-header-req" id="round-requirement"></div>
     </div>
 
+    <!-- Fixed toast (always visible regardless of scroll/tab) -->
+    <div id="toast-area" class="toast-fixed">
+      <span id="toast-msg" class="hidden"></span>
+    </div>
+
     <!-- Mobile Tabs (hidden on desktop) -->
     <div class="mobile-tabs" id="mobile-tabs">
       <button class="mobile-tab active" data-tab="board">🎯 Board</button>
       <button class="mobile-tab" data-tab="songs">🎵 Songs</button>
+      <button class="mobile-tab" data-tab="all" id="scroll-mode-btn">📜 All</button>
     </div>
 
     <div class="container">
@@ -33,10 +39,6 @@
           <button class="bingo-btn" id="bingo-btn">
             🎉 BINGO! 🎉
           </button>
-        </div>
-
-        <div id="toast-area" class="text-center mb-2" style="min-height:1.5em;">
-          <span id="toast-msg" class="hidden" style="padding:0.4em 1em; border-radius:999px; font-weight:600; font-size:0.95rem;"></span>
         </div>
       </div>
 
@@ -66,8 +68,12 @@
             if (target === 'board') {
               boardTab.classList.remove('hidden');
               songsTab.classList.add('hidden');
-            } else {
+            } else if (target === 'songs') {
               boardTab.classList.add('hidden');
+              songsTab.classList.remove('hidden');
+            } else {
+              // Scroll mode — show both
+              boardTab.classList.remove('hidden');
               songsTab.classList.remove('hidden');
             }
           });
