@@ -158,8 +158,14 @@
       var catDiv = document.createElement('div');
       catDiv.className = 'song-category';
 
+      var categoryEmojis = {
+        'Norske sanger': '🇳🇴',
+        'Dansegulvet': '🪩',
+        'Kjærleik': '💕',
+        'Tidenes hits': '🔥'
+      };
       var catTitle = document.createElement('h3');
-      catTitle.textContent = catName;
+      catTitle.textContent = (categoryEmojis[catName] || '🎵') + ' ' + catName;
       catDiv.appendChild(catTitle);
 
       var ul = document.createElement('ul');

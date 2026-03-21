@@ -30,8 +30,8 @@
 
       <!-- BINGO Button -->
       <div class="text-center mt-2 mb-2">
-        <button class="btn btn-primary btn-lg btn-block" id="bingo-btn" style="font-size:1.5rem; padding:0.8em 2em; letter-spacing:0.1em;">
-          BINGO!
+        <button class="bingo-btn" id="bingo-btn">
+          🎉 BINGO! 🎉
         </button>
       </div>
 
@@ -73,20 +73,21 @@
       var container = document.getElementById('confetti-container');
       if (!container) return;
       container.innerHTML = '';
-      var colors = ['#e94560', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#1abc9c'];
-      for (var i = 0; i < 80; i++) {
+      var colors = ['#ff2d75', '#ffab00', '#00e676', '#7b2ff7', '#00b0ff', '#ff6d00', '#e040fb', '#ffd600'];
+      var shapes = ['50%', '0', '0 50% 50% 0'];
+      for (var i = 0; i < 150; i++) {
         var p = document.createElement('div');
         p.className = 'confetti-piece';
         p.style.left = Math.random() * 100 + '%';
         p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        p.style.animationDelay = (Math.random() * 2) + 's';
-        p.style.animationDuration = (2 + Math.random() * 2) + 's';
-        p.style.width = (6 + Math.random() * 8) + 'px';
-        p.style.height = (6 + Math.random() * 8) + 'px';
-        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        p.style.animationDelay = (Math.random() * 3) + 's';
+        p.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+        p.style.width = (5 + Math.random() * 10) + 'px';
+        p.style.height = (5 + Math.random() * 10) + 'px';
+        p.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
         container.appendChild(p);
       }
-      setTimeout(function () { container.innerHTML = ''; }, 5000);
+      setTimeout(function () { container.innerHTML = ''; }, 6000);
     };
   </script>
 
