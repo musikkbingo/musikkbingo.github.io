@@ -49,7 +49,7 @@ window.SONG_POOL = [
   { title: "Selv du", artist: "Cezinando", category: "Norske sanger" },
   { title: "Er dette alt", artist: "Cezinando", category: "Norske sanger" },
   { title: "Mitt lille land", artist: "Ole Paus", category: "Norske sanger" },
-  { title: "Noen ganger", artist: "Odd Nordstoga", category: "Norske sanger" },
+  { title: "Kveldssong for deg og meg", artist: "Odd Nordstoga", category: "Norske sanger" },
   { title: "Kvelden er din", artist: "Åge Aleksandersen", category: "Norske sanger" },
   { title: "Steinkjer i mitt hjerte", artist: "Åge Aleksandersen", category: "Norske sanger" },
   { title: "Shut Up", artist: "Madcon", category: "Norske sanger" },
