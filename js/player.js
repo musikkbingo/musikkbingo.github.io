@@ -70,11 +70,12 @@
     var round = meta.currentRound || 1;
     roundInfo.textContent = 'Round ' + round;
     var reqTexts = {
-      1: 'One line to win!',
-      2: 'Two lines to win!',
-      3: 'Full board to win!'
+      1: '🎯 One line to win!',
+      2: '🎯 Two lines to win!',
+      3: '🎯 Full board to win!'
     };
     roundRequirement.textContent = reqTexts[round] || '';
+    updateBingoButton();
   }
 
   // ---- Song tracking (no audio on player - music plays from venue speakers) ----
@@ -139,12 +140,44 @@
     }
   }
 
+  // ---- Check if marks form a potential bingo (ignoring calledSongs) ----
+  function hasPatternForRound(round) {
+    if (round === 3) {
+      for (var k = 0; k < 16; k++) { if (!marks[k]) return false; }
+      return true;
+    }
+    var lines = window.WINNING_LINES;
+    var completedLines = 0;
+    for (var l = 0; l < lines.length; l++) {
+      var complete = true;
+      for (var j = 0; j < lines[l].length; j++) {
+        if (!marks[lines[l][j]]) { complete = false; break; }
+      }
+      if (complete) completedLines++;
+    }
+    if (round === 1) return completedLines >= 1;
+    return completedLines >= 2;
+  }
+
+  function updateBingoButton() {
+    var round = meta.currentRound || 1;
+    var ready = hasPatternForRound(round);
+    bingoBtn.disabled = !ready;
+    if (ready) {
+      bingoBtn.classList.add('bingo-ready');
+      bingoBtn.textContent = '🎉 BINGO! 🎉';
+    } else {
+      bingoBtn.classList.remove('bingo-ready');
+      bingoBtn.textContent = 'BINGO';
+    }
+  }
+
   // ---- Toggle mark ----
   function toggleMark(idx) {
     marks[idx] = !marks[idx];
-    // Write to Firebase
     playerRef.child('marks').set(marks);
     renderBoard();
+    updateBingoButton();
   }
 
   // ---- Render Song List ----
@@ -208,22 +241,32 @@
   }
 
   // ---- BINGO button ----
+  var wrongMessages = [
+    '😬 Nope! Listen closer!',
+    '🙈 Not quite there...',
+    '🎵 Nice try, keep listening!',
+    '😅 Oops! Wrong songs marked!',
+    '🤔 Are you sure about those?',
+    '🫣 Almost... but not this time!',
+    '🎧 Turn up the volume maybe?',
+    '😂 Bold move! But no...',
+    '🤷 Better luck next song!',
+    '💃 Keep dancing, keep guessing!'
+  ];
+
   bingoBtn.addEventListener('click', function () {
-    // Pre-check client side
+    if (bingoBtn.disabled) return;
+
+    // Pre-check: marks form a pattern, but are the right songs called?
     var hasBingo = window.checkBingo(board, marks, calledSongs, meta.currentRound || 1);
 
     if (!hasBingo) {
-      showToast('Not yet!', 'var(--danger)', 2000);
-      // Brief shake animation on button
-      bingoBtn.style.transition = 'none';
-      bingoBtn.style.transform = 'translateX(-5px)';
-      setTimeout(function () {
-        bingoBtn.style.transition = 'transform 0.1s';
-        bingoBtn.style.transform = 'translateX(5px)';
-        setTimeout(function () {
-          bingoBtn.style.transform = 'translateX(0)';
-        }, 100);
-      }, 100);
+      var msg = wrongMessages[Math.floor(Math.random() * wrongMessages.length)];
+      showToast(msg, 'var(--danger)', 3000);
+      // Shake animation
+      bingoBtn.style.animation = 'none';
+      bingoBtn.offsetHeight; // force reflow
+      bingoBtn.style.animation = 'shake 0.5s ease';
       return;
     }
 
@@ -318,6 +361,7 @@
 
           renderBoard();
           renderSongList();
+          updateBingoButton();
 
           // Now set up real-time listeners
           setupListeners();

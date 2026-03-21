@@ -517,14 +517,37 @@ select.form-input {
 }
 
 .bingo-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
   animation: none;
+  background: linear-gradient(135deg, #3a2a5a, #2a1a4a);
+  box-shadow: none;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+}
+
+.bingo-btn.bingo-ready {
+  animation: bingo-shimmer 3s ease infinite, bingo-glow 1.5s ease-in-out infinite;
 }
 
 @keyframes bingo-shimmer {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes bingo-glow {
+  0%, 100% { box-shadow: 0 6px 25px rgba(255, 45, 117, 0.4), 0 0 40px rgba(123, 47, 247, 0.15); }
+  50% { box-shadow: 0 6px 35px rgba(255, 45, 117, 0.7), 0 0 60px rgba(123, 47, 247, 0.3), 0 0 80px rgba(255, 45, 117, 0.15); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px) rotate(-1deg); }
+  30% { transform: translateX(8px) rotate(1deg); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
 }
 
 /* ===== Now Playing ===== */
