@@ -750,6 +750,34 @@ select.form-input {
   font-weight: 500;
 }
 
+/* ===== Admin Header ===== */
+.admin-header {
+  text-align: center;
+  padding: 1.2rem 1rem;
+  background: linear-gradient(135deg, #150734 0%, #1a0a4a 50%, #0d0221 100%);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--accent), var(--accent-secondary), var(--warning), var(--accent)) 1;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-header-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--warning), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.3rem;
+}
+
+.admin-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 /* ===== Admin Panel ===== */
 .admin-controls {
   display: flex;

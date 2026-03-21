@@ -46,6 +46,7 @@
   var currentSongTitle = document.getElementById('current-song-title');
   var currentSongArtist = document.getElementById('current-song-artist');
   var nextSongBtn = document.getElementById('next-song-btn');
+  var prevSongBtn = document.getElementById('prev-song-btn');
   var calledSongsList = document.getElementById('called-songs-list');
   var playingPlayerCount = document.getElementById('playing-player-count');
   var playingPlayerList = document.getElementById('playing-player-list');
@@ -487,6 +488,8 @@
 
   function playAdminEmbed(trackId) {
     if (!adminEmbedEl || !trackId) return;
+    if (adminEmbedEl.dataset.currentTrack === trackId) return;
+    adminEmbedEl.dataset.currentTrack = trackId;
     adminEmbedEl.innerHTML = '<iframe src="https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>';
   }
 
@@ -591,10 +594,17 @@
       currentSongNumber.textContent = songNum;
       currentSongTitle.textContent = song ? song.title : 'Song #' + songNum;
       currentSongArtist.textContent = song ? song.artist : '';
+
+      // Load Spotify embed for current song (deduplicates internally)
+      if (song && song.spotifyUri) {
+        var trackId = song.spotifyUri.replace('spotify:track:', '');
+        playAdminEmbed(trackId);
+      }
     }
 
-    // Disable next song if all songs called
+    // Disable next/prev song buttons based on position
     nextSongBtn.disabled = (currentIndex >= 31);
+    if (prevSongBtn) prevSongBtn.disabled = (currentIndex <= 0);
 
     renderCalledSongs();
   }
@@ -669,6 +679,36 @@
     // Start count-up timer and reset click tracking
     startSongTimer();
   });
+
+  // Previous song - go back one song (replay)
+  if (prevSongBtn) {
+    prevSongBtn.addEventListener('click', function () {
+      if (!meta) return;
+      var currentIndex = meta.currentSongIndex != null ? meta.currentSongIndex : -1;
+      if (currentIndex <= 0) return;
+
+      var newIndex = currentIndex - 1;
+      // Remove last called song
+      var newCalledSongs = calledSongs.slice();
+      newCalledSongs.pop();
+
+      var updates = {};
+      updates['meta/currentSongIndex'] = newIndex;
+      updates['calledSongs'] = newCalledSongs;
+
+      window.db.ref('games/' + roomCode).update(updates);
+
+      var songNum = songOrder[newIndex];
+      var song = findSongByNumber(songNum);
+      if (song && song.spotifyUri) {
+        var trackId = song.spotifyUri.replace('spotify:track:', '');
+        adminEmbedEl.dataset.currentTrack = '';
+        playAdminEmbed(trackId);
+      }
+
+      startSongTimer();
+    });
+  }
 
   // Render called songs list
   function renderCalledSongs() {
