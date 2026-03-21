@@ -43,7 +43,7 @@ window.SONG_POOL = [
   { title: "A Lovestory", artist: "Thomas Dybdahl", category: "Norske sanger" },
   { title: "One Day You'll Dance for Me, New York City", artist: "Thomas Dybdahl", category: "Norske sanger" },
   { title: "Au Pair", artist: "Karpe", category: "Norske sanger" },
-  { title: "BMW", artist: "Karpe", category: "Norske sanger" },
+  { title: "Hansen", artist: "Karpe", category: "Norske sanger" },
   { title: "Ei kansen te kaffe", artist: "Hellbillies", category: "Norske sanger" },
   { title: "For full musikk", artist: "Hellbillies", category: "Norske sanger" },
   { title: "Selv du", artist: "Cezinando", category: "Norske sanger" },

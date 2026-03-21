@@ -278,6 +278,32 @@
     showToast('Checking...', 'var(--warning)', 10000);
   });
 
+  // ---- Game summary builder ----
+  function buildPlayerGameSummary(roundWinners, totalRounds) {
+    var winCounts = {};
+    var lines = '';
+    for (var r = 1; r <= totalRounds; r++) {
+      var name = roundWinners[r] || '—';
+      lines += 'Round ' + r + ': <strong>' + name + '</strong><br>';
+      if (roundWinners[r]) {
+        winCounts[roundWinners[r]] = (winCounts[roundWinners[r]] || 0) + 1;
+      }
+    }
+    var maxWins = 0;
+    var champions = [];
+    for (var p in winCounts) {
+      if (winCounts[p] > maxWins) { maxWins = winCounts[p]; champions = [p]; }
+      else if (winCounts[p] === maxWins) { champions.push(p); }
+    }
+    var champText = '';
+    if (champions.length === 1) {
+      champText = '<div style="font-size:1.2rem;font-weight:800;margin:0.5rem 0;">🏆 ' + champions[0] + ' 🏆</div>';
+    } else if (champions.length > 1) {
+      champText = '<div style="font-size:1.1rem;font-weight:800;margin:0.5rem 0;">🏆 ' + champions.join(' & ') + ' 🏆</div>';
+    }
+    return champText + '<div style="font-size:0.9rem;margin-top:0.5rem;">' + lines + '</div>';
+  }
+
   // ---- Winner celebration ----
   function showCelebration(winnerName, winnerId) {
     if (celebrationShown) return;
@@ -297,6 +323,11 @@
     }
 
     if (isLastRound) {
+      // Build game summary
+      var roundWinners = meta.roundWinners || {};
+      var totalRounds = parseInt(meta.totalRounds, 10) || 3;
+      var summaryHtml = buildPlayerGameSummary(roundWinners, totalRounds);
+      celebrationSubtitle.innerHTML = summaryHtml;
       celebrationDismiss.textContent = 'Waiting for new game...';
       celebrationDismiss.disabled = true;
       bingoBtn.disabled = true;

@@ -789,11 +789,14 @@
       var isValid = window.checkBingo(board, marks, freshCalled, currentRound);
 
       if (isValid) {
+        var currentRound = meta.currentRound || 1;
         var updates = {
           'meta/winnerName': playerData.name,
           'meta/winnerId': playerId,
           'meta/status': 'finished'
         };
+        // Store winner for this round
+        updates['meta/roundWinners/' + currentRound] = playerData.name;
         window.db.ref('games/' + roomCode).update(updates);
         showCelebration();
       } else {
@@ -807,10 +810,10 @@
     if (!meta) return;
 
     var winnerName = meta.winnerName || 'Unknown';
-    var currentRound = meta.currentRound || 1;
-    var totalRounds = meta.totalRounds || 3;
+    var currentRound = parseInt(meta.currentRound, 10) || 1;
+    var totalRounds = parseInt(meta.totalRounds, 10) || 3;
 
-    winnerDisplay.textContent = winnerName + ' wins!';
+    winnerDisplay.textContent = winnerName + ' wins Round ' + currentRound + '!';
     finishedRoundInfo.textContent = 'Round ' + currentRound + ' of ' + totalRounds + ' complete';
 
     if (currentRound < totalRounds) {
@@ -819,7 +822,47 @@
     } else {
       nextRoundArea.classList.add('hidden');
       gameOverArea.classList.remove('hidden');
+
+      // Build game summary
+      var roundWinners = meta.roundWinners || {};
+      var summary = buildGameSummary(roundWinners, totalRounds);
+      var summaryEl = document.getElementById('game-summary');
+      if (summaryEl) summaryEl.innerHTML = summary;
     }
+  }
+
+  function buildGameSummary(roundWinners, totalRounds) {
+    // Count wins per player
+    var winCounts = {};
+    var roundList = '';
+    for (var r = 1; r <= totalRounds; r++) {
+      var name = roundWinners[r] || '—';
+      roundList += '<div style="display:flex;justify-content:space-between;padding:0.3em 0;border-bottom:1px solid var(--border);"><span>Round ' + r + '</span><span style="font-weight:700;color:var(--warning);">' + name + '</span></div>';
+      if (roundWinners[r]) {
+        winCounts[roundWinners[r]] = (winCounts[roundWinners[r]] || 0) + 1;
+      }
+    }
+
+    // Find the champion(s)
+    var maxWins = 0;
+    var champions = [];
+    for (var player in winCounts) {
+      if (winCounts[player] > maxWins) {
+        maxWins = winCounts[player];
+        champions = [player];
+      } else if (winCounts[player] === maxWins) {
+        champions.push(player);
+      }
+    }
+
+    var championText = '';
+    if (champions.length === 1) {
+      championText = '<div style="font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:0.5rem;">🏆 ' + champions[0] + ' 🏆</div><div style="color:var(--text-secondary);">' + maxWins + ' round' + (maxWins > 1 ? 's' : '') + ' won!</div>';
+    } else if (champions.length > 1) {
+      championText = '<div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:0.5rem;">🏆 ' + champions.join(' & ') + ' 🏆</div><div style="color:var(--text-secondary);">Tied with ' + maxWins + ' round' + (maxWins > 1 ? 's' : '') + ' each!</div>';
+    }
+
+    return championText + '<div style="margin-top:1rem;">' + roundList + '</div>';
   }
 
   // Next round
