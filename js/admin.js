@@ -362,15 +362,10 @@
         headers: { 'Authorization': 'Bearer ' + token }
       });
 
-      // Token expired — clear it and prompt re-auth
+      // Token expired
       if (resp.status === 401) {
         sessionStorage.removeItem('spotify_access_token');
-        var lobbyStatus = document.getElementById('spotify-lobby-status');
-        var lobbyBtn = document.getElementById('spotify-lobby-connect-btn');
-        if (lobbyStatus) { lobbyStatus.textContent = '🔴 Session expired'; lobbyStatus.style.color = 'var(--danger)'; }
-        if (lobbyBtn) lobbyBtn.classList.remove('hidden');
-        alert('Spotify session expired. Please reconnect Spotify and try again.');
-        return null;
+        return 'TOKEN_EXPIRED';
       }
 
       var data = await resp.json();
@@ -429,6 +424,15 @@
       if (statusEl) statusEl.textContent = 'Linking... (' + (m + 1) + '/' + missing.length + ')';
 
       var uri = await searchSpotifyTrack(song.title, song.artist, token);
+      if (uri === 'TOKEN_EXPIRED') {
+        var ls = document.getElementById('spotify-lobby-status');
+        var lb = document.getElementById('spotify-lobby-connect-btn');
+        if (ls) { ls.textContent = '🔴 Session expired'; ls.style.color = 'var(--danger)'; }
+        if (lb) lb.classList.remove('hidden');
+        if (statusEl) statusEl.textContent = 'Spotify expired — reconnect';
+        alert('Spotify session expired. Reconnect Spotify and try again.');
+        return false;
+      }
       if (uri) {
         songs[idx].spotifyUri = uri;
       } else {
