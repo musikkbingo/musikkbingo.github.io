@@ -949,21 +949,26 @@ select.form-input {
 
 /* ===== Mobile Tabs (player view) ===== */
 .mobile-tabs {
-  display: flex;
+  display: flex !important;
+  width: 100%;
   position: sticky;
   top: 0;
   z-index: 10;
   background: var(--bg-secondary);
   border-bottom: 2px solid var(--border);
   padding: 0;
+  margin: 0;
 }
 
 .mobile-tab {
-  flex: 1;
+  flex: 1 1 50%;
+  width: 50%;
+  min-width: 0;
   padding: 1em 0;
   font-size: 1.15rem;
   font-weight: 700;
   border: none;
+  border-radius: 0;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -971,6 +976,8 @@ select.form-input {
   border-bottom: 4px solid transparent;
   -webkit-tap-highlight-color: transparent;
   letter-spacing: 0.03em;
+  text-align: center;
+  margin: 0;
 }
 
 .mobile-tab.active {
@@ -1007,10 +1014,16 @@ select.form-input {
   }
 }
 
+@media (max-width: 767px) {
+  .mobile-tabs {
+    display: flex !important;
+  }
+}
+
 @media (min-width: 768px) {
   /* Hide mobile tabs on desktop */
   .mobile-tabs {
-    display: none;
+    display: none !important;
   }
 
   /* Show both tabs as side-by-side layout */
