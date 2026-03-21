@@ -595,6 +595,13 @@ select.form-input {
   margin-bottom: 0.5rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--border);
+}
+
+.song-category h3 .category-emoji {
+  font-size: 1.1em;
+}
+
+.song-category h3 .category-name {
   background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

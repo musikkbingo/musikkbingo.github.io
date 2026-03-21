@@ -177,7 +177,14 @@
         'Tidenes hits': '🔥'
       };
       var catTitle = document.createElement('h3');
-      catTitle.textContent = (categoryEmojis[catName] || '🎵') + ' ' + catName;
+      var emojiSpan = document.createElement('span');
+      emojiSpan.className = 'category-emoji';
+      emojiSpan.textContent = categoryEmojis[catName] || '🎵';
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'category-name';
+      nameSpan.textContent = ' ' + catName;
+      catTitle.appendChild(emojiSpan);
+      catTitle.appendChild(nameSpan);
       catDiv.appendChild(catTitle);
 
       var ul = document.createElement('ul');
