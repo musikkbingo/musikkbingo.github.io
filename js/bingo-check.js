@@ -69,10 +69,7 @@ function checkBingo(board, marks, calledSongs, currentRound) {
     }
   }
 
-  if (currentRound === 1) {
-    return completedLines >= 1;
-  }
-  // currentRound === 2
+  if (currentRound === 1) return completedLines >= 1;
   return completedLines >= 2;
 }
 

@@ -622,6 +622,12 @@
     nextSongBtn.disabled = (currentIndex >= 31);
     if (prevSongBtn) prevSongBtn.disabled = (currentIndex <= 0);
 
+    // Show "No winner" button when all songs are called
+    var noWinnerArea = document.getElementById('no-winner-btn-area');
+    if (noWinnerArea) {
+      noWinnerArea.classList.toggle('hidden', currentIndex < 31);
+    }
+
     renderCalledSongs();
   }
 
@@ -799,6 +805,9 @@
         updates['meta/roundWinners/' + currentRound] = playerData.name;
         window.db.ref('games/' + roomCode).update(updates);
         showCelebration();
+        // Stop Spotify player
+        if (adminEmbedEl) { adminEmbedEl.innerHTML = ''; adminEmbedEl.dataset.currentTrack = ''; }
+        stopSongTimer();
       } else {
         window.db.ref('games/' + roomCode + '/players/' + playerId + '/claimedBingo').set(false);
       }
@@ -828,6 +837,38 @@
       var summary = buildGameSummary(roundWinners, totalRounds);
       var summaryEl = document.getElementById('game-summary');
       if (summaryEl) summaryEl.innerHTML = summary;
+    }
+
+    // Render called songs in finished view
+    var finishedSongsList = document.getElementById('finished-called-songs-list');
+    if (finishedSongsList && calledSongs && calledSongs.length > 0) {
+      finishedSongsList.innerHTML = '';
+      for (var s = 0; s < calledSongs.length; s++) {
+        var num = calledSongs[s];
+        var song = findSongByNumber(num);
+        var li = document.createElement('li');
+        li.style.padding = '0.4rem 0.5rem';
+        li.style.borderBottom = '1px solid var(--border)';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        var numSpan = document.createElement('span');
+        numSpan.style.fontWeight = '700';
+        numSpan.style.color = 'var(--accent)';
+        numSpan.style.minWidth = '2em';
+        numSpan.textContent = '#' + num;
+        var titleSpan = document.createElement('span');
+        titleSpan.style.flex = '1';
+        titleSpan.style.marginLeft = '0.75rem';
+        titleSpan.textContent = song ? song.title + ' — ' + song.artist : 'Song #' + num;
+        var orderSpan = document.createElement('span');
+        orderSpan.style.color = 'var(--text-muted)';
+        orderSpan.style.fontSize = '0.8rem';
+        orderSpan.textContent = '(' + (s + 1) + ')';
+        li.appendChild(numSpan);
+        li.appendChild(titleSpan);
+        li.appendChild(orderSpan);
+        finishedSongsList.appendChild(li);
+      }
     }
   }
 
@@ -903,6 +944,25 @@
   endGamePlayingBtn.addEventListener('click', endGame);
   endGameFinishedBtn.addEventListener('click', endGame);
   endGameLobbyBtn.addEventListener('click', endGame);
+
+  // No winner — end current round without a winner
+  var noWinnerBtn = document.getElementById('no-winner-btn');
+  if (noWinnerBtn) {
+    noWinnerBtn.addEventListener('click', function () {
+      if (!meta) return;
+      var currentRound = parseInt(meta.currentRound, 10) || 1;
+      var totalRounds = parseInt(meta.totalRounds, 10) || 3;
+
+      // Store "No winner" for this round
+      var updates = {
+        'meta/winnerName': 'No winner',
+        'meta/winnerId': null,
+        'meta/status': 'finished'
+      };
+      updates['meta/roundWinners/' + currentRound] = 'No winner';
+      window.db.ref('games/' + roomCode).update(updates);
+    });
+  }
 
   // New game in same room - resets everything, regenerates boards, keeps players
   newGameBtn.addEventListener('click', function () {

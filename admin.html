@@ -157,6 +157,11 @@
           <span id="song-timer" style="font-size:1.4rem; font-weight:700; color:var(--text-secondary); font-family:'Courier New',monospace; min-width:3em;">0:00</span>
         </div>
 
+        <!-- No winner button (shows when all songs called) -->
+        <div class="text-center mb-2 hidden" id="no-winner-btn-area">
+          <button class="btn btn-warning btn-lg" id="no-winner-btn" style="background:var(--warning);color:#000;">🤷 No winner this round — end it</button>
+        </div>
+
         <!-- Players (compact) -->
         <div class="card">
           <div class="card-header flex-between">
@@ -213,6 +218,14 @@
             </select>
           </div>
           <button class="btn btn-success btn-lg btn-block" id="new-game-btn">🎵 New Game</button>
+        </div>
+
+        <!-- Called Songs (visible after game ends so people can check) -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🎵 Songs Played</h3>
+          </div>
+          <ul id="finished-called-songs-list" style="max-height:400px; overflow-y:auto; list-style:none; padding:0;"></ul>
         </div>
 
         <div class="text-center mt-2">
