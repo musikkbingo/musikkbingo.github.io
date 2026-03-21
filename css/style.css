@@ -954,30 +954,33 @@ select.form-input {
   top: 0;
   z-index: 10;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  padding: 0;
 }
 
 .mobile-tab {
   flex: 1;
-  padding: 0.75em 0;
-  font-size: 1rem;
+  padding: 1em 0;
+  font-size: 1.15rem;
   font-weight: 700;
   border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  border-bottom: 3px solid transparent;
+  transition: color 0.2s, background 0.2s;
+  border-bottom: 4px solid transparent;
   -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.03em;
 }
 
 .mobile-tab.active {
-  color: var(--accent);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(123, 47, 247, 0.15), transparent);
   border-bottom-color: var(--accent);
 }
 
-.mobile-tab:not(.active):hover {
-  color: var(--text-secondary);
+.mobile-tab:not(.active) {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), transparent);
 }
 
 /* Tab content visibility managed by .hidden class on mobile,
