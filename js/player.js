@@ -31,6 +31,7 @@
   var meta = {};           // game meta
   var songMap = {};        // number -> song object
   var lastClaimedBingo = false;
+  var playerInitiatedClaim = false; // true only when player clicks BINGO button
   var celebrationShown = false;
 
   // ---- DOM refs ----
@@ -272,6 +273,7 @@
     }
 
     // Claim bingo in Firebase
+    playerInitiatedClaim = true;
     bingoBtn.disabled = true;
     bingoBtn.textContent = 'Checking...';
     bingoBtn.classList.remove('bingo-ready');
@@ -550,14 +552,15 @@
         return;
       }
 
-      if (claimed === true) {
+      if (claimed === true && playerInitiatedClaim) {
         bingoBtn.disabled = true;
         bingoBtn.textContent = 'Checking...';
         bingoBtn.classList.remove('bingo-ready');
       } else if (claimed === false) {
-        if (lastClaimedBingo === true) {
+        if (lastClaimedBingo === true && playerInitiatedClaim) {
           showToast('Not this time!', 'var(--danger)', 3000);
         }
+        playerInitiatedClaim = false;
         updateBingoButton();
       }
       lastClaimedBingo = claimed;
