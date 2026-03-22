@@ -909,11 +909,18 @@
   // Next round
   nextRoundBtn.addEventListener('click', function () {
     if (!meta) return;
+
+    // Reset admin state BEFORE Firebase update (listener fires synchronously from cache)
+    waitingForNextSong = true;
+    clickedPlayers = {};
+    stopSongTimer();
+    if (adminEmbedEl) { adminEmbedEl.innerHTML = ''; adminEmbedEl.dataset.currentTrack = ''; }
+
     var newRound = (meta.currentRound || 1) + 1;
     var currentIdx = meta.currentSongIndex != null ? meta.currentSongIndex : -1;
     var updates = {
       'meta/currentRound': newRound,
-      'meta/currentSongIndex': currentIdx, // keep song position (songs carry over)
+      'meta/currentSongIndex': currentIdx,
       'meta/winnerName': null,
       'meta/winnerId': null,
       'meta/status': 'playing'
@@ -925,12 +932,6 @@
     for (var i = 0; i < keys.length; i++) {
       window.db.ref('games/' + roomCode + '/players/' + keys[i] + '/claimedBingo').set(false);
     }
-
-    // Reset admin state for new round
-    clickedPlayers = {};
-    waitingForNextSong = true;
-    stopSongTimer();
-    if (adminEmbedEl) { adminEmbedEl.innerHTML = ''; adminEmbedEl.dataset.currentTrack = ''; }
   });
 
   // End game - deletes game data and goes back to lobby
