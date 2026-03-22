@@ -185,8 +185,6 @@
     listeners.push({ ref: playersRef, event: 'value' });
 
     // Player activity + bingo claim listener
-    var processingClaim = false;
-
     playersRef.on('child_changed', function (snap) {
       var playerId = snap.key;
       var playerData = snap.val();
@@ -196,11 +194,8 @@
       onPlayerActivity(playerId);
 
       // Check for bingo claims
-      if (playerData.claimedBingo === true && meta && meta.status === 'playing' && !processingClaim) {
-        processingClaim = true;
-        handleBingoClaim(playerId, playerData, function () {
-          processingClaim = false;
-        });
+      if (playerData.claimedBingo === true && meta && meta.status === 'playing') {
+        handleBingoClaim(playerId, playerData);
       }
     });
     listeners.push({ ref: playersRef, event: 'child_changed' });
@@ -777,13 +772,12 @@
   }
 
   // ===== BINGO Handler =====
-  function handleBingoClaim(playerId, playerData, done) {
+  function handleBingoClaim(playerId, playerData) {
     // Guard: ignore claims from players with invalid/missing data
     var board = playerData.board || [];
     var marks = playerData.marks || [];
     if (!Array.isArray(board) || board.length !== 16 || !Array.isArray(marks) || marks.length < 16) {
       window.db.ref('games/' + roomCode + '/players/' + playerId + '/claimedBingo').set(false);
-      if (done) done();
       return;
     }
 
@@ -810,7 +804,6 @@
       } else {
         window.db.ref('games/' + roomCode + '/players/' + playerId + '/claimedBingo').set(false);
       }
-      if (done) done();
     });
   }
 
