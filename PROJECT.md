@@ -1,7 +1,7 @@
 # Music Bingo Web App
 
-**Live URL:** https://kristinannabel.github.io
-**Repo:** https://github.com/kristinannabel/kristinannabel.github.io
+**Live URL:** https://musikkbingo.github.io
+**Repo:** https://github.com/kristinannabel/musikkbingo.github.io
 **Firebase Project:** music-bingo-fbe1c
 **Spotify Client ID:** 4a27c13806da4316a1c4de46ee9e2b10
 
@@ -138,7 +138,7 @@ Multiplayer music bingo for parties/events. Up to 30 players join via room code 
 
 - Developer Dashboard: https://developer.spotify.com/dashboard
 - App name: "Music Bingo"
-- Redirect URI: `https://kristinannabel.github.io/admin.html`
+- Redirect URI: `https://musikkbingo.github.io/admin.html`
 - Scopes: `user-read-private`
 - Auth flow: PKCE (no backend)
 
