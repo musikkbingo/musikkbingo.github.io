@@ -818,12 +818,15 @@
     winnerDisplay.textContent = winnerName + ' wins Round ' + currentRound + '!';
     finishedRoundInfo.textContent = 'Round ' + currentRound + ' of ' + totalRounds + ' complete';
 
+    var newGameArea = document.getElementById('new-game-area');
     if (currentRound < totalRounds) {
       nextRoundArea.classList.remove('hidden');
       gameOverArea.classList.add('hidden');
+      if (newGameArea) newGameArea.classList.add('hidden');
     } else {
       nextRoundArea.classList.add('hidden');
       gameOverArea.classList.remove('hidden');
+      if (newGameArea) newGameArea.classList.remove('hidden');
 
       // Build game summary
       var roundWinners = meta.roundWinners || {};
