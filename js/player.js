@@ -364,8 +364,14 @@
     if (celebrationDismiss.disabled) return;
     celebrationOverlay.classList.remove('active');
     celebrationShown = false;
-    bingoBtn.disabled = false;
-    bingoBtn.textContent = 'BINGO!';
+    // Don't re-enable bingo button if round is finished — wait for next round
+    if (meta && meta.status === 'finished') {
+      bingoBtn.disabled = true;
+      bingoBtn.textContent = 'Waiting for next round...';
+      bingoBtn.classList.remove('bingo-ready');
+    } else {
+      updateBingoButton();
+    }
   });
 
   // ---- Initialize: load player data ----
