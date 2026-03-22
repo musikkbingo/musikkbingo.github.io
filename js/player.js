@@ -321,6 +321,9 @@
     if (celebrationShown) return;
     celebrationShown = true;
 
+    // Reset claim flag so round transition doesn't show "Not this time!"
+    playerInitiatedClaim = false;
+
     // Clear any toast (e.g. "Checking...")
     toastMsg.classList.add('hidden');
     clearTimeout(toastTimer);
