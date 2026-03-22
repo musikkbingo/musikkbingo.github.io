@@ -319,6 +319,10 @@
     if (celebrationShown) return;
     celebrationShown = true;
 
+    // Clear any toast (e.g. "Checking...")
+    toastMsg.classList.add('hidden');
+    clearTimeout(toastTimer);
+
     var isMe = winnerId === playerId;
     var isLastRound = (meta.currentRound || 1) >= (meta.totalRounds || 3);
 
